@@ -20,7 +20,7 @@ function Search({setIsLogin}) {
 
     try {
        await axios.get(
-        `http://localhost:5000/api/user-repo/${username}`,
+        `${process.env.BASE_URL}/api/user-repo/${username}`,
         {
           headers: {
             Authorization: loginToken,

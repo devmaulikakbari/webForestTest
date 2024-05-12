@@ -3,6 +3,8 @@ import "./form.css";
 import axios from "axios"; // Import Axios
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
+const env = require("dotenv");
+env.config();
 function Form({ setIsLogin }) {
   const [formType, setFormType] = useState(false);
   const [isOtp, setIsOtp] = useState(false);
@@ -42,7 +44,7 @@ function Form({ setIsLogin }) {
     try {
       // Make a POST request to your sign-in API endpoint
       await axios
-        .post("http://localhost:5000/api/user/login", signIn)
+        .post(`${process.env.BASE_URL}/api/user/login`, signIn)
         .then((res) => {
           setLoginToken(res.data.token);
           setIsOtp(true);
@@ -64,7 +66,7 @@ function Form({ setIsLogin }) {
 
     try {
       await axios
-        .post("http://localhost:5000/api/user/signup", {
+        .post(`${process.env.BASE_URL}/api/user/signup`, {
           username: signUp?.username,
           email: signUp?.email,
           password: signUp?.password,
@@ -89,7 +91,7 @@ function Form({ setIsLogin }) {
     try {
       // Make a POST request to your sign-up API endpoint
       await axios
-        .post("http://localhost:5000/api/user/verifyotp", {
+        .post(`${process.env.BASE_URL}/api/user/verifyotp`, {
           token: loginToken,
           otp: otp,
         })
