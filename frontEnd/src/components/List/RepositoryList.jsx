@@ -3,7 +3,7 @@ import {
   FaSortAlphaDown,
   FaSortAlphaUp,
 } from "react-icons/fa";
-import "./repositoryList.css"; // Importing custom CSS file for styling
+import "./repositoryList.css";
 import axios from "axios";
 
 function RepositoryList({ repositories, fetchRepo }) {

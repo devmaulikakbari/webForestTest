@@ -9,7 +9,7 @@ const message = {
     INVALIDTOKEN: "Invalid Token",
     OTP_EXPIRE: "OTP Expire",
     USER_ALREADY_EXISTS: "User Already Exist.",
-    ALREADY_VERIFIED_OTP: "Otp already verified.",
+    ALREADY_VERIFIED_OTP: "Please enter valid otp.",
     USER_REPO_DATA_SUCCESS: "User repository data get successfully.",
     FETCH_FEV_LIST_SUCCESS: "Fetch favourite list successfully."
   };

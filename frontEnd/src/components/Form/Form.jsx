@@ -49,13 +49,13 @@ function Form({ setIsLogin }) {
           toast.success(res?.data?.message || "API call successful!");
         })
         .catch((error) => {
-          toast.error(error?.data?.message || "Please Try After Sometime");
-          console.log(error);
+          console.log("-----error----",error);
+          toast.error(error?.response?.data?.message || "Please Try After Sometimes");
         });
     } catch (error) {
       // Handle errors (e.g., display error message)
       console.error("Error signing in:", error);
-      toast.error(error?.message || "Please Try After Sometime");
+      toast.error(error?.response?.data?.message || "Please Try After Sometimes");
     }
   };
 
@@ -75,12 +75,12 @@ function Form({ setIsLogin }) {
         })
         .catch((error) => {
           console.log(error);
-          toast.error(error?.data?.message || "Please Try After Sometime");
+          toast.error(error?.response?.data?.message || "User Already Exist...");
         });
     } catch (error) {
       // Handle errors (e.g., display error message)
       console.error("Error signing up:", error);
-      toast.error(error?.message || "Please Try After Sometime");
+      toast.error(error?.response?.data?.message || "User Already Exist...");
     }
   };
   const handleCheckOtp = async (e) => {
@@ -94,20 +94,19 @@ function Form({ setIsLogin }) {
           otp: otp,
         })
         .then((response) => {
-          // setApiToken(response.data.createToken);
-          localStorage.setItem("token", response.data.createToken);
+          console.log(response);
+          localStorage.setItem("token", response?.data?.createToken);
           setIsLogin(true);
           setIsLogin(true);
           toast.success(response?.data?.message || "API call successful!");
         })
         .catch((error) => {
           console.log(error);
-          toast.error(error?.data?.message || "Please Try After Sometime");
+          toast.error(error?.response?.data?.message || "Please Try After Sometime");
         });
     } catch (error) {
-      // Handle errors (e.g., display error message)
       console.error("Error signing up:", error);
-      toast.error(error?.message || "Please Try After Sometime");
+      toast.error(error?.response?.data?.message || "Please Try After Sometime");
     }
   };
   return (

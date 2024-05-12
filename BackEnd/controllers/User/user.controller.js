@@ -151,6 +151,14 @@ exports.verifyOTP = async (req, res) => {
       login_token: tokenData.login_token,
     });
 
+    if (!userData) {
+      const response = {
+        responseCode: 401,
+        message: message.USERNOTFOUND,
+      };
+      return res.status(httpStatus.UNAUTHORIZED).json(response);
+    }
+
     const existingOTP = await otpService.getOTP({
       otp: otp,
       otp_status: "send",
@@ -205,14 +213,13 @@ exports.getUserRepository = async (req, res) => {
   try {
     const user = req.user;
     const userName = req.params.username;
-    const limit = parseInt(req.query.per_offset) || 10;
+    const limit = parseInt(req.query.limit) || 10;
     const offset = parseInt(req.query.offset) || 0;
-
 
     const apiUrl = "https://api.github.com";
 
-     const token = process.env.GIT_TOKEN;
-      const headers = {
+    const token = process.env.GIT_TOKEN;
+    const headers = {
       Authorization: `token ${token}`,
       "Content-Type": "application/json",
       accept: "application/vnd.github+json",
@@ -220,16 +227,25 @@ exports.getUserRepository = async (req, res) => {
     const userData = await userService.getUser({
       email: user.email,
     });
+
+    if (!userData) {
+      const response = {
+        responseCode: 401,
+        message: message.USERNOTFOUND,
+      };
+      return res.status(httpStatus.UNAUTHORIZED).json(response);
+    }
+
     const getFavoriteData = await getFavourite({
       userId: userData._id,
       islike: true,
     });
 
-    const response = await axios.get(`${apiUrl}/users/${userName}/repos`, {
+    const getRepoData = await axios.get(`${apiUrl}/users/${userName}/repos`, {
       headers,
     });
 
-    const repositoriesData = response.data.map((repo) => {
+    const repositoriesData = getRepoData?.data.map((repo) => {
       const isLike = !!getFavoriteData.find(
         (ele) => Number(ele.repo_id) === Number(repo.id)
       );
@@ -254,7 +270,7 @@ exports.getUserRepository = async (req, res) => {
     const totalItems = repositoriesData.length;
     const totalOffsets = Math.ceil(totalItems / limit);
 
-    const responseData = {
+    const response = {
       offset: offset + 1,
       totalOffsets,
       itemsLimit: limit,
@@ -263,9 +279,9 @@ exports.getUserRepository = async (req, res) => {
       message: message.USER_REPO_DATA_SUCCESS,
     };
 
-    res.status(httpStatus.OK).send(responseData);
+    res.status(httpStatus.OK).send(response);
   } catch (err) {
-    const errorMsg = err.response ? err.response.data.message : err.message;
+    const errorMsg = err.response ? err?.response?.data?.message : err.message;
     res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       msg: errorMsg,
       message: "INTERNAL_SERVER_ERROR",
@@ -281,15 +297,23 @@ exports.addAndRemoveFavourite = async (req, res) => {
     const userData = await userService.getUser({
       email: user.email,
     });
+
+    if (!userData) {
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        responseCode: 401,
+        message: message.USERNOTFOUND,
+      });
+    }
+
     const getFavoriteData = await getFavourite({
-      userId: userData._id,
+      userId: userData?._id,
       repo_id: repoId,
     });
 
     if (!getFavoriteData || !getFavoriteData.length) {
       isLike = true;
       await createFavourite({
-        userId: userData._id,
+        userId: userData?._id,
         repo_id: repoId,
         islike: true,
       });
@@ -320,6 +344,14 @@ exports.getallFavorite = async (req, res) => {
     const userData = await userService.getUser({
       email: user.email,
     });
+
+    if (!userData) {
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        responseCode: 401,
+        message: message.USERNOTFOUND,
+      });
+    }
+
     const getFavoriteData = await getFavourite({
       userId: userData._id,
       islike: true,

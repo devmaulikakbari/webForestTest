@@ -26,17 +26,17 @@ function Search({setIsLogin}) {
             Authorization: loginToken,
           },
         }
-      ).then((reposResponse)=>{
+      ).then((response)=>{
         setRepositories(
-          reposResponse?.data?.totalRecord?.sort((a, b) => b.watchers_count - a.watchers_count)
+          response?.data?.totalRecord?.sort((a, b) => b.watchers_count - a.watchers_count)
         );
-        setAvatarUrl(reposResponse?.data?.totalRecord?.[0]?.avatar_url);
+        setAvatarUrl(response?.data?.totalRecord?.[0]?.avatar_url);
         setError(null);
-        toast.success(reposResponse?.data?.message || "API call successful!");
+        toast.success(response?.data?.message || "API call successful!");
 
       }).catch((error)=>{
       setError("Error fetching data. Please try again.");
-      toast.error(error?.data?.message || "Please Try After Sometime");
+      toast.error(error?.response?.data?.message || "Please Try After Sometime");
       })
 
     } catch (error) {
