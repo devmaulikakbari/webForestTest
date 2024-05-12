@@ -3,7 +3,7 @@ import { FaSortAlphaDown, FaSortAlphaUp } from "react-icons/fa";
 import "./repositoryList.css";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 function RepositoryList({ repositories, fetchRepo }) {
   const [sortOrder, setSortOrder] = useState("asc"); // 'asc' or 'desc'
@@ -63,25 +63,32 @@ function RepositoryList({ repositories, fetchRepo }) {
   };
 
   const handleCheck = async (repoId, event) => {
-    await axios
-      .post(
-        `${process.env.REACT_APP_HOST}/api/favorite`,
-        {
-          repoId: repoId,
-        },
-        {
-          headers: {
-            Authorization: loginToken,
+    try {
+      await axios
+        .post(
+          `${process.env.REACT_APP_HOST}/api/favorite`,
+          {
+            repoId: repoId,
           },
-        }
-      )
-      .then(async (response) => {
-        toast.success(response?.data?.message);
-        await fetchRepo(event);
-      })
-      .catch((error) => {
-        toast.error(error?.message || "Please Try After Sometime");
-      });
+          {
+            headers: {
+              Authorization: loginToken,
+            },
+          }
+        )
+        .then(async (response) => {
+          toast.success(response?.data?.message);
+          await fetchRepo(event);
+        })
+        .catch((error) => {
+          toast.error(error?.dat?.message || "Please Try After Sometime");
+        });
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error(
+        error?.response?.data?.message || "Please Try After Sometime"
+      );
+    }
   };
   return (
     <div className="table-responsive">
@@ -121,7 +128,7 @@ function RepositoryList({ repositories, fetchRepo }) {
                     <input
                       type="checkbox"
                       checked={repo.islike}
-                      onClick={(e) => {
+                      onChange={(e) => {
                         handleCheck(id, e);
                       }}
                     />
@@ -143,7 +150,7 @@ function RepositoryList({ repositories, fetchRepo }) {
           </div>
         )}
       </div>
-      <ToastContainer />
+      {/* <ToastContainer /> */}
     </div>
   );
 }
