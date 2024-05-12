@@ -65,7 +65,7 @@ function RepositoryList({ repositories, fetchRepo }) {
 
   const handleCheck = async (repoId, event) => {
     const response = await axios.post(
-      `${process.env.BASE_URL}/api/favorite`,
+      `${process.env.REACT_APP_HOST}/api/favorite`,
       {
         repoId: repoId,
       },
