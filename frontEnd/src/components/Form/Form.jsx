@@ -71,7 +71,6 @@ function Form({ setIsLogin }) {
         })
         .then((response) => {
           setFormType(false);
-          debugger
           toast.success(response?.data?.message || "API call successful!");
         })
         .catch((error) => {
@@ -159,7 +158,7 @@ function Form({ setIsLogin }) {
                 <b
                   onClick={() => {
                     setFormType(false);
-                    setSignIn((prevState) => ({ ...prevState, username: "" }));
+                    setSignIn((prevState) => ({ ...prevState }));
                   }}
                   className="pointer"
                 >
