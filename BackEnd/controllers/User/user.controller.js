@@ -116,7 +116,6 @@ exports.login = async (req, res) => {
 
     const response = {
       token,
-      otp,
       responseCode: httpStatus.OK,
       message: message.SEND_OTP,
     };
@@ -170,18 +169,6 @@ exports.verifyOTP = async (req, res) => {
       };
       return res.status(httpStatus.CONFLICT).json(response);
     }
-
-    // if (moment().isAfter(moment(existingOTP.expireTime))) {
-    //   await otpService.updateOTP(
-    //     {
-    //       otp_status: "expire",
-    //     },
-    //     {
-    //       otp: otp,
-    //     }
-    //   );
-    //   return res.status(403).json({ message: message.OTP_EXPIRE });
-    // }
 
     await otpService.updateOTP(
       {

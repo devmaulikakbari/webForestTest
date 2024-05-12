@@ -9,7 +9,7 @@ const otpSchema = new mongoose.Schema({
   },
   otp_status: {
     type: String,
-    enum: ["send", "verify", "expire"],
+    enum: ["send", "verify"],
   },
 });
 
