@@ -1,0 +1,14 @@
+.btn-submit {
+    background-color: #333; 
+    color: white; 
+    border: none; 
+  }
+  
+  .btn-submit:hover {
+    background-color: #555;
+  }
+  
+  .container-end{
+    display: flex;
+    justify-content: end;
+  }
