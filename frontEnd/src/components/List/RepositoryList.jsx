@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-  FaSortAlphaDown,
-  FaSortAlphaUp,
-} from "react-icons/fa";
+import { FaSortAlphaDown, FaSortAlphaUp } from "react-icons/fa";
 import "./repositoryList.css";
 import axios from "axios";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 
 function RepositoryList({ repositories, fetchRepo }) {
   const [sortOrder, setSortOrder] = useState("asc"); // 'asc' or 'desc'
   const [sortedRepositories, setSortedRepositories] = useState([]);
   const [sortColumn, setSortColumn] = useState("name"); // 'name', 'description', or 'watchers_count'
-  const loginToken = localStorage.getItem('token');
-  const [isBack,setIsBack]=useState(false);
+  const loginToken = localStorage.getItem("token");
+  const [isBack, setIsBack] = useState(false);
 
   useEffect(() => {
     setSortedRepositories([...repositories]);
@@ -64,23 +63,28 @@ function RepositoryList({ repositories, fetchRepo }) {
   };
 
   const handleCheck = async (repoId, event) => {
-    const response = await axios.post(
-      `${process.env.REACT_APP_HOST}/api/favorite`,
-      {
-        repoId: repoId,
-      },
-      {
-        headers: {
-          Authorization: loginToken,
+    await axios
+      .post(
+        `${process.env.REACT_APP_HOST}/api/favorite`,
+        {
+          repoId: repoId,
         },
-      }
-    );
-    if (response && response.status === 200) {
-      await fetchRepo(event);
-    }
+        {
+          headers: {
+            Authorization: loginToken,
+          },
+        }
+      )
+      .then(async (response) => {
+        toast.success(response?.data?.message);
+        await fetchRepo(event);
+      })
+      .catch((error) => {
+        toast.error(error?.message || "Please Try After Sometime");
+      });
   };
   return (
-    <div className="table-responsive"> 
+    <div className="table-responsive">
       <table className="table table-striped custom-table">
         <thead>
           <tr>
@@ -128,19 +132,18 @@ function RepositoryList({ repositories, fetchRepo }) {
           })}
         </tbody>
       </table>
-        <div className="btn-wrapper">
-          {
-            isBack ? 
-            <div className="favourite-action__wrapper" onClick={handleClearAll}>
+      <div className="btn-wrapper">
+        {isBack ? (
+          <div className="favourite-action__wrapper" onClick={handleClearAll}>
             <button className="favourite__list_action">Back</button>
-          </div> 
-          :
+          </div>
+        ) : (
           <div className="favourite-action__wrapper" onClick={handleClick}>
-          <button className="favourite__list_action">Favorite List</button>
-        </div>
-          }
-        </div>
-      
+            <button className="favourite__list_action">Favorite List</button>
+          </div>
+        )}
+      </div>
+      <ToastContainer />
     </div>
   );
 }
