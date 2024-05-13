@@ -200,7 +200,7 @@ exports.getUserRepository = async (req, res) => {
   try {
     const user = req.user;
     const userName = req.params.username;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 1000;
     const offset = parseInt(req.query.offset) || 0;
 
     const apiUrl = "https://api.github.com";
