@@ -34,7 +34,7 @@ Click on the back button to return to the search page.
 
 
 Logout
-To logout, simply click on the logout button.
+To logout, simply click on the logout button for clearing localstorage and you can go back to loginpage.
 
 
 Technologies Used
