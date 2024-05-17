@@ -24,7 +24,7 @@ exports.signUp = async (req, res) => {
         res,
         httpStatus.CONFLICT,
         message.USER_ALREADY_EXISTS,
-        "User already exists"
+        message.USER_ALREADY_EXISTS
       );
     }
 
@@ -38,13 +38,13 @@ exports.signUp = async (req, res) => {
       { _id: userData._id }
     );
 
-    return sendSuccessResponse(res, httpStatus.OK, message.SUCCESSSIGNUP);
+    return sendSuccessResponse(res, httpStatus.OK, message.SUCCESS_SIGNUP);
   } catch (err) {
     return sendErrorResponse(
       res,
       httpStatus.INTERNAL_SERVER_ERROR,
       err.message,
-      message.SIGNUPERROR
+      message.SIGNUP_ERROR
     );
   }
 };
@@ -58,8 +58,8 @@ exports.login = async (req, res) => {
       return sendErrorResponse(
         res,
         httpStatus.UNAUTHORIZED,
-        message.USERNOTFOUND,
-        "User not found"
+        message.USER_NOT_FOUND,
+        message.USER_NOT_FOUND
       );
     }
 
@@ -69,7 +69,7 @@ exports.login = async (req, res) => {
         res,
         httpStatus.UNAUTHORIZED,
         message.INVALID,
-        "Invalid password"
+        message.INVALID
       );
     }
 
@@ -97,7 +97,7 @@ exports.login = async (req, res) => {
       res,
       httpStatus.INTERNAL_SERVER_ERROR,
       err.message,
-      message.LOGINERROR
+      message.LOGIN_ERROR
     );
   }
 };
@@ -111,8 +111,8 @@ exports.verifyOTP = async (req, res) => {
       return sendErrorResponse(
         res,
         httpStatus.UNAUTHORIZED,
-        message.INVALIDTOKEN,
-        "Invalid token"
+        message.INVALID_TOKEN,
+        message.INVALID_TOKEN
       );
     }
 
@@ -123,8 +123,8 @@ exports.verifyOTP = async (req, res) => {
       return sendErrorResponse(
         res,
         httpStatus.UNAUTHORIZED,
-        message.USERNOTFOUND,
-        "User not found"
+        message.USER_NOT_FOUND,
+        message.USER_NOT_FOUND
       );
     }
 
@@ -134,7 +134,7 @@ exports.verifyOTP = async (req, res) => {
         res,
         httpStatus.CONFLICT,
         message.ALREADY_VERIFIED_OTP,
-        "OTP already verified"
+        message.ALREADY_VERIFIED_OTP
       );
     }
 
@@ -149,7 +149,7 @@ exports.verifyOTP = async (req, res) => {
       res,
       httpStatus.INTERNAL_SERVER_ERROR,
       err.message,
-      message.LOGINERROR
+      message.LOGIN_ERROR
     );
   }
 };
@@ -166,8 +166,8 @@ exports.getUserRepository = async (req, res) => {
       return sendErrorResponse(
         res,
         httpStatus.UNAUTHORIZED,
-        message.USERNOTFOUND,
-        "User not found"
+        message.USER_NOT_FOUND,
+        message.USER_NOT_FOUND
       );
     }
 
@@ -220,7 +220,7 @@ exports.getUserRepository = async (req, res) => {
       res,
       httpStatus.INTERNAL_SERVER_ERROR,
       err.message,
-      "INTERNAL_SERVER_ERROR"
+      message.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -235,8 +235,8 @@ exports.addAndRemoveFavourite = async (req, res) => {
       return sendErrorResponse(
         res,
         httpStatus.UNAUTHORIZED,
-        message.USERNOTFOUND,
-        "User not found"
+        message.USER_NOT_FOUND,
+        message.USER_NOT_FOUND
       );
     }
 
@@ -271,7 +271,7 @@ exports.addAndRemoveFavourite = async (req, res) => {
       res,
       httpStatus.INTERNAL_SERVER_ERROR,
       err.message,
-      "INTERNAL_SERVER_ERROR"
+      message.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -285,8 +285,8 @@ exports.getallFavorite = async (req, res) => {
       return sendErrorResponse(
         res,
         httpStatus.UNAUTHORIZED,
-        message.USERNOTFOUND,
-        "User not found"
+        message.USER_NOT_FOUND,
+        message.USER_NOT_FOUND
       );
     }
 
@@ -305,7 +305,7 @@ exports.getallFavorite = async (req, res) => {
       res,
       httpStatus.INTERNAL_SERVER_ERROR,
       err.message,
-      "INTERNAL_SERVER_ERROR"
+      message.INTERNAL_SERVER_ERROR
     );
   }
 };
