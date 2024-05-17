@@ -11,53 +11,41 @@ const {
   createFavourite,
   favouriteUpdate,
 } = require("../../service/DB/favourite.service");
+const { sendErrorResponse } = require("../../service/utils");
+const { sendSuccessResponse } = require("../../service/utils");
 
 exports.signUp = async (req, res) => {
   try {
-    const createUser = {
-      user_name: req.body.userName,
-      password: req.body.password,
-      email: req.body.email,
-    };
+    const { userName, password, email } = req.body; /* destructuring payload */
 
-    const ifAlreadyExist = await userService.getUser({
-      email: createUser.email,
-    });
-
+    const ifAlreadyExist = await userService.getUser({ email });
     if (ifAlreadyExist) {
-      const response = {
-        responseCode: 409,
-        message: message.USER_ALREADY_EXISTS,
-      };
-      return res.status(httpStatus.CONFLICT).json(response);
+      return sendErrorResponse(
+        res,
+        httpStatus.CONFLICT,
+        message.USER_ALREADY_EXISTS,
+        "User already exists"
+      );
     }
 
+    const createUser = { user_name: userName, password, email };
     const data = await userService.createUserData(createUser);
 
-    const userData = await userService.getUser({
-      _id: data._id,
-    });
-
+    const userData = await userService.getUser({ _id: data._id });
     const encryptedPassword = await utils.encryptedData(userData.password);
     await userService.updatePassword(
       { password: encryptedPassword },
-      {
-        _id: userData._id,
-      }
+      { _id: userData._id }
     );
 
-    const response = {
-      responseCode: httpStatus.OK,
-      message: message.SUCCESSSIGNUP,
-    };
-
-    res.status(200).send(response);
+    return sendSuccessResponse(res, httpStatus.OK, message.SUCCESSSIGNUP);
   } catch (err) {
-    const errorMsg = err.errors ? err.errors[0].message : err.message;
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      msg: errorMsg,
-      error: message.SIGNUPERROR,
-    });
+    return sendErrorResponse(
+      res,
+      httpStatus.INTERNAL_SERVER_ERROR,
+      err.message,
+      message.SIGNUPERROR
+    );
   }
 };
 
@@ -66,67 +54,51 @@ exports.login = async (req, res) => {
     const { password, email } = req.body;
 
     const userData = await userService.getUser({ email });
-
     if (!userData) {
-      const response = {
-        responseCode: 401,
-        message: message.USERNOTFOUND,
-      };
-      return res.status(httpStatus.UNAUTHORIZED).json(response);
+      return sendErrorResponse(
+        res,
+        httpStatus.UNAUTHORIZED,
+        message.USERNOTFOUND,
+        "User not found"
+      );
     }
+
     const decryptPassword = utils.decryptPassword(userData.password);
     if (decryptPassword !== password) {
-      const response = {
-        responseCode: 401,
-        message: message.INVALID,
-      };
-      return res.status(httpStatus.UNAUTHORIZED).json(response);
+      return sendErrorResponse(
+        res,
+        httpStatus.UNAUTHORIZED,
+        message.INVALID,
+        "Invalid password"
+      );
     }
 
     const otp = utils.generateOTP();
     const expireTime = moment().add(1, "hour").format("YYYY-MM-DD h:mm:ss");
 
-    await otpService.createOtp({
-      otp: otp,
-      expireTime: expireTime,
-      otp_status: "send",
-    });
+    await otpService.createOtp({ otp, expireTime, otp_status: "send" });
 
     const emailData = await templateService.emailTemplate({
       template_name: "otp generation",
     });
     let templateBody = await emailData.body;
 
-    const object = {
-      otp: otp,
-    };
-
-    for (const key in object) {
-      templateBody = templateBody
-        ? templateBody.replace(new RegExp(`{${key}}`, "g"), `${object[key]}`)
-        : null;
-    }
-
     if (templateBody) {
+      templateBody = templateBody.replace(/{otp}/g, otp);
       await utils.sendMail(userData.email, "loginOTP", templateBody);
     }
 
     const token = utils.generateTokenId();
     await userService.createLoginData(userData, token);
 
-    const response = {
-      token,
-      responseCode: httpStatus.OK,
-      message: message.SEND_OTP,
-    };
-
-    res.status(200).send(response);
+    return sendSuccessResponse(res, httpStatus.OK, message.SEND_OTP, { token });
   } catch (err) {
-    const errorMsg = err.errors ? err.errors[0].message : err.message;
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      msg: errorMsg,
-      error: message.LOGINERROR,
-    });
+    return sendErrorResponse(
+      res,
+      httpStatus.INTERNAL_SERVER_ERROR,
+      err.message,
+      message.LOGINERROR
+    );
   }
 };
 
@@ -134,225 +106,206 @@ exports.verifyOTP = async (req, res) => {
   try {
     const { otp, token } = req.body;
 
-    const tokenData = await userService.getUser({
-      login_token: token,
-    });
-
+    const tokenData = await userService.getUser({ login_token: token });
     if (!tokenData) {
-      const response = {
-        responseCode: 401,
-        message: message.INVALIDTOKEN,
-      };
-      return res.status(httpStatus.UNAUTHORIZED).json(response);
+      return sendErrorResponse(
+        res,
+        httpStatus.UNAUTHORIZED,
+        message.INVALIDTOKEN,
+        "Invalid token"
+      );
     }
 
     const userData = await userService.getUser({
       login_token: tokenData.login_token,
     });
-
     if (!userData) {
-      const response = {
-        responseCode: 401,
-        message: message.USERNOTFOUND,
-      };
-      return res.status(httpStatus.UNAUTHORIZED).json(response);
+      return sendErrorResponse(
+        res,
+        httpStatus.UNAUTHORIZED,
+        message.USERNOTFOUND,
+        "User not found"
+      );
     }
 
-    const existingOTP = await otpService.getOTP({
-      otp: otp,
-      otp_status: "send",
-    });
+    const existingOTP = await otpService.getOTP({ otp, otp_status: "send" });
     if (!existingOTP) {
-      const response = {
-        responseCode: 409,
-        message: message.ALREADY_VERIFIED_OTP,
-      };
-      return res.status(httpStatus.CONFLICT).json(response);
+      return sendErrorResponse(
+        res,
+        httpStatus.CONFLICT,
+        message.ALREADY_VERIFIED_OTP,
+        "OTP already verified"
+      );
     }
 
-    await otpService.updateOTP(
-      {
-        otp_status: "verify",
-      },
-      {
-        otp: otp,
-      }
-    );
+    await otpService.updateOTP({ otp_status: "verify" }, { otp });
 
     const createToken = utils.createToken(userData, process.env.JWT_SECRET);
-    const response = {
+    return sendSuccessResponse(res, httpStatus.OK, message.SUCCESS, {
       createToken,
-      responseCode: httpStatus.OK,
-      message: message.SUCCESS,
-    };
-
-    res.status(200).json(response);
-  } catch (err) {
-    const errorMsg = err.errors ? err.errors[0].message : err.message;
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      msg: errorMsg,
-      message: message.LOGINERROR,
     });
+  } catch (err) {
+    return sendErrorResponse(
+      res,
+      httpStatus.INTERNAL_SERVER_ERROR,
+      err.message,
+      message.LOGINERROR
+    );
   }
 };
 
 exports.getUserRepository = async (req, res) => {
   try {
-    const user = req.user;
-    const userName = req.params.username;
-    const limit = parseInt(req.query.limit) || 1000;
-    const offset = parseInt(req.query.offset) || 0;
+    const { user } = req;
+    const { username: userName } = req.params;
+    const limit = parseInt(req.query.limit, 10) || 1000;
+    const offset = parseInt(req.query.offset, 10) || 0;
 
-    const apiUrl = "https://api.github.com";
-
-    const token = process.env.GIT_TOKEN;
-    const headers = {
-      Authorization: `token ${token}`,
-      "Content-Type": "application/json",
-      accept: "application/vnd.github+json",
-    };
-    const userData = await userService.getUser({
-      email: user.email,
-    });
-
+    const userData = await userService.getUser({ email: user.email });
     if (!userData) {
-      const response = {
-        responseCode: 401,
-        message: message.USERNOTFOUND,
-      };
-      return res.status(httpStatus.UNAUTHORIZED).json(response);
+      return sendErrorResponse(
+        res,
+        httpStatus.UNAUTHORIZED,
+        message.USERNOTFOUND,
+        "User not found"
+      );
     }
 
     const getFavoriteData = await getFavourite({
       userId: userData._id,
       islike: true,
     });
+    const headers = {
+      Authorization: `token ${process.env.GIT_TOKEN}`,
+      "Content-Type": "application/json",
+      accept: "application/vnd.github+json",
+    };
+    const { data: repoData } = await axios.get(
+      `https://api.github.com/users/${userName}/repos`,
+      { headers }
+    );
 
-    const getRepoData = await axios.get(`${apiUrl}/users/${userName}/repos`, {
-      headers,
-    });
-
-    const repositoriesData = getRepoData?.data.map((repo) => {
-      const isLike = !!getFavoriteData.find(
-        (ele) => Number(ele.repo_id) === Number(repo.id)
-      );
-      return {
-        id: repo.id,
-        avatar_url: repo.owner.avatar_url,
-        watchers_count: repo.watchers_count,
-        full_name: repo.full_name,
-        description: repo.description,
-        watchers: repo.watchers,
-        islike: isLike,
-      };
-    });
+    const repositoriesData = repoData.map((repo) => ({
+      id: repo.id,
+      avatar_url: repo.owner.avatar_url,
+      watchers_count: repo.watchers_count,
+      full_name: repo.full_name,
+      description: repo.description,
+      watchers: repo.watchers,
+      islike: getFavoriteData.some((fav) => fav.repo_id === repo.id),
+    }));
 
     const sortedRepositories = repositoriesData.sort(
       (a, b) => b.watchers - a.watchers
     );
+    const totalRecord = sortedRepositories.slice(
+      offset * limit,
+      (offset + 1) * limit
+    );
 
-    const startIndex = offset * limit;
-    const endIndex = startIndex + limit;
-    const totalRecord = sortedRepositories.slice(startIndex, endIndex);
-    const totalItems = repositoriesData.length;
-    const totalOffsets = Math.ceil(totalItems / limit);
-
-    const response = {
-      offset: offset + 1,
-      totalOffsets,
-      itemsLimit: limit,
-      total: totalItems,
-      totalRecord,
-      message: message.USER_REPO_DATA_SUCCESS,
-    };
-
-    res.status(httpStatus.OK).send(response);
+    return sendSuccessResponse(
+      res,
+      httpStatus.OK,
+      message.USER_REPO_DATA_SUCCESS,
+      {
+        offset: offset + 1,
+        totalOffsets: Math.ceil(repositoriesData.length / limit),
+        itemsLimit: limit,
+        total: repositoriesData.length,
+        totalRecord,
+      }
+    );
   } catch (err) {
-    const errorMsg = err.response ? err?.response?.data?.message : err.message;
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      msg: errorMsg,
-      message: "INTERNAL_SERVER_ERROR",
-    });
+    return sendErrorResponse(
+      res,
+      httpStatus.INTERNAL_SERVER_ERROR,
+      err.message,
+      "INTERNAL_SERVER_ERROR"
+    );
   }
 };
 
 exports.addAndRemoveFavourite = async (req, res) => {
   try {
-    const user = req.user;
+    const { user } = req;
     const { repoId } = req.body;
-    let isLike = false;
-    const userData = await userService.getUser({
-      email: user.email,
-    });
 
+    const userData = await userService.getUser({ email: user.email });
     if (!userData) {
-      return res.status(httpStatus.UNAUTHORIZED).json({
-        responseCode: 401,
-        message: message.USERNOTFOUND,
-      });
+      return sendErrorResponse(
+        res,
+        httpStatus.UNAUTHORIZED,
+        message.USERNOTFOUND,
+        "User not found"
+      );
     }
 
     const getFavoriteData = await getFavourite({
-      userId: userData?._id,
+      userId: userData._id,
       repo_id: repoId,
     });
+    let isLike = false;
 
-    if (!getFavoriteData || !getFavoriteData.length) {
+    if (!getFavoriteData.length) {
       isLike = true;
       await createFavourite({
-        userId: userData?._id,
+        userId: userData._id,
         repo_id: repoId,
         islike: true,
       });
     } else {
-      const fav = getFavoriteData?.[0]?.islike;
-      isLike = !fav;
+      isLike = !getFavoriteData[0].islike;
       await favouriteUpdate(
-        { islike: !fav },
+        { islike: isLike },
         { userId: userData._id, repo_id: repoId }
       );
     }
 
-    res.status(httpStatus.OK).send({
-      message: `${isLike ? "Add to favourite" : "Remove from favourite"}`,
-    });
+    return sendSuccessResponse(
+      res,
+      httpStatus.OK,
+      isLike ? "Add to favourite" : "Remove from favourite"
+    );
   } catch (err) {
-    const errorMsg = err.response ? err.response.data.message : err.message;
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      msg: errorMsg,
-      message: "INTERNAL_SERVER_ERROR",
-    });
+    return sendErrorResponse(
+      res,
+      httpStatus.INTERNAL_SERVER_ERROR,
+      err.message,
+      "INTERNAL_SERVER_ERROR"
+    );
   }
 };
 
 exports.getallFavorite = async (req, res) => {
   try {
-    const user = req.user;
-    const userData = await userService.getUser({
-      email: user.email,
-    });
+    const { user } = req;
 
+    const userData = await userService.getUser({ email: user.email });
     if (!userData) {
-      return res.status(httpStatus.UNAUTHORIZED).json({
-        responseCode: 401,
-        message: message.USERNOTFOUND,
-      });
+      return sendErrorResponse(
+        res,
+        httpStatus.UNAUTHORIZED,
+        message.USERNOTFOUND,
+        "User not found"
+      );
     }
 
     const getFavoriteData = await getFavourite({
-      userId: userData._id,
+      userId: userData?._id,
       islike: true,
     });
-
-    res.status(httpStatus.OK).send({
-      message: message.FETCH_FEV_LIST_SUCCESS,
-      favRepos: getFavoriteData,
-    });
+    return sendSuccessResponse(
+      res,
+      httpStatus.OK,
+      message.FETCH_FEV_LIST_SUCCESS,
+      { favRepos: getFavoriteData }
+    );
   } catch (err) {
-    const errorMsg = err.response ? err.response.data.message : err.message;
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      msg: errorMsg,
-      message: "INTERNAL_SERVER_ERROR",
-    });
+    return sendErrorResponse(
+      res,
+      httpStatus.INTERNAL_SERVER_ERROR,
+      err.message,
+      "INTERNAL_SERVER_ERROR"
+    );
   }
 };

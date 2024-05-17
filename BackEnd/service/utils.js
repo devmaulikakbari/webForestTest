@@ -70,3 +70,18 @@ exports.decryptPassword = (password) => {
   const decryptedPassword = decryptedBytes.toString(CryptoJS.enc.Utf8);
   return decryptedPassword;
 };
+
+exports.sendErrorResponse = (res, statusCode, errorMsg, errorDetail) => {
+  return res.status(statusCode).json({
+    msg: errorMsg,
+    error: errorDetail,
+  });
+};
+
+exports.sendSuccessResponse = (res, statusCode, message, data = {}) => {
+  return res.status(statusCode).json({
+    responseCode: statusCode,
+    message,
+    ...data,
+  });
+};
