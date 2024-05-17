@@ -32,13 +32,13 @@ exports.signUp = async (req, res) => {
     const data = await userService.createUserData(createUser);
 
     const userData = await userService.getUser({ _id: data._id });
-    const encryptedPassword = await utils.encryptedData(userData.password);
+    const encryptedPassword = utils.encryptedData(userData.password);
     await userService.updatePassword(
       { password: encryptedPassword },
       { _id: userData._id }
     );
 
-    return sendSuccessResponse(res, httpStatus.OK, message.SUCCESS_SIGNUP);
+    return sendSuccessResponse(res, httpStatus.CREATED, message.SUCCESS_SIGNUP);
   } catch (err) {
     return sendErrorResponse(
       res,
@@ -186,13 +186,13 @@ exports.getUserRepository = async (req, res) => {
     );
 
     const repositoriesData = repoData.map((repo) => ({
-      id: repo.id,
-      avatar_url: repo.owner.avatar_url,
-      watchers_count: repo.watchers_count,
-      full_name: repo.full_name,
-      description: repo.description,
-      watchers: repo.watchers,
-      islike: getFavoriteData.some((fav) => fav.repo_id === repo.id),
+      id: repo?.id,
+      avatar_url: repo?.owner.avatar_url,
+      watchers_count: repo?.watchers_count,
+      full_name: repo?.full_name,
+      description: repo?.description,
+      watchers: repo?.watchers,
+      islike: getFavoriteData.some((fav) => fav.repo_id === repo?.id),
     }));
 
     const sortedRepositories = repositoriesData.sort(
@@ -280,7 +280,7 @@ exports.getallFavorite = async (req, res) => {
   try {
     const { user } = req;
 
-    const userData = await userService.getUser({ email: user.email });
+    const userData = await userService.getUser({ email: user?.email });
     if (!userData) {
       return sendErrorResponse(
         res,
